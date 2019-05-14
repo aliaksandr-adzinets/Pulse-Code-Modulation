@@ -10,75 +10,82 @@ package com.dfx5.cc.audio;
  *
  *  Limitations
  *  -----------
- *    - Assumes the audio is monaural, little endian, with sampling rate
- *      of 44,100
- *    - check when reading .wav files from a .jar file ?
+ *  - Assumes the audio is monaural, little endian, with sampling rate of 44,100
+ *  - check when reading .wav files from a .jar file ?
  *
+ *
+ *      BIT_RATE = SAMPLING_RATE x BIT_DEPTH x CHANNELS   ==>   8000 Hz (1/s) x 16 bit x 2 channels = 256 kb/s
+ *      STREAM_SIZE = BIT_RATE x DURATION  ==>  256 kb/s x 3 min 21 sec = 256 * 201 * 1000 / 8 / 1024 / 1024 = 6.13
+ *      1000 bits = 1 kilobit, 1024 bytes = 1 kilobyte
+ *
+ *
+ *  Copyright 2002-2018, Robert Sedgewick and Kevin Wayne.
+ *
+ *  This file is part of algs4.jar, which accompanies the textbook
+ *
+ *      Algorithms, 4th edition by Robert Sedgewick and Kevin Wayne,
+ *      Addison-Wesley Professional, 2011, ISBN 0-321-57351-X.
+ *      http://algs4.cs.princeton.edu
+ *
+ *  algs4.jar is free software: you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation, either version 3 of the License, or
+ *  (at your option) any later version.
+ *
+ *  algs4.jar is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License
+ *  along with algs4.jar.  If not, see http://www.gnu.org/licenses.
  ******************************************************************************/
 
-import javax.sound.sampled.Clip;
-
-import java.io.File;
 import java.io.ByteArrayInputStream;
+import java.io.File;
 import java.io.InputStream;
 import java.io.IOException;
-
-import java.net.URL;
 
 import javax.sound.sampled.AudioFileFormat;
 import javax.sound.sampled.AudioFormat;
 import javax.sound.sampled.AudioInputStream;
 import javax.sound.sampled.AudioSystem;
+import javax.sound.sampled.Clip;
 import javax.sound.sampled.DataLine;
 import javax.sound.sampled.LineUnavailableException;
 import javax.sound.sampled.SourceDataLine;
 import javax.sound.sampled.UnsupportedAudioFileException;
 
-import javax.sound.sampled.LineListener;
-import javax.sound.sampled.LineEvent;
-
 /**
- *  <i>Standard audio</i>. This class provides a basic capability for
- *  creating, reading, and saving audio.
- *  <p>
- *  The audio format uses a sampling rate of 44,100 Hz, 16-bit, monaural.
- *
- *  <p>
- *  For additional documentation, see <a href="https://introcs.cs.princeton.edu/15inout">Section 1.5</a> of
- *  <i>Computer Science: An Interdisciplinary Approach</i> by Robert Sedgewick and Kevin Wayne.
+ *  <i>Standard audio</i>.
+ *  <p>This class provides a basic capability for creating, reading, and saving audio.</p>
+ *  <p>The audio format uses a sampling rate of 44,100 Hz, 16-bit, monaural (monophonic).</p>
+ *  <p>For additional documentation, see <a href="https://introcs.cs.princeton.edu/15inout">Section 1.5</a> of
+ *  <i>Computer Science: An Interdisciplinary Approach</i> by Robert Sedgewick and Kevin Wayne.</p>
  *
  *  @author Robert Sedgewick
  *  @author Kevin Wayne
  */
-public final class StdAudio {
+final class StdAudio {
 
     /**
      *  The sample rate: 44,100 Hz for CD quality audio.
      */
     //public static final int SAMPLE_RATE = 44100;
 
-    public static final int SAMPLE_RATE = 8000;
-
+    private static final int SAMPLE_RATE = 8000;
 
     private static final int BYTES_PER_SAMPLE = 2;                // 16-bit audio
     private static final int BITS_PER_SAMPLE = 16;                // 16-bit audio
     private static final double MAX_16_BIT = Short.MAX_VALUE;     // 32,767
 
-    // private static final int SAMPLE_BUFFER_SIZE = 4096; // ORIGINAL
-
     private static final int SAMPLE_BUFFER_SIZE = 4096;
-
 
     private static final int MONO   = 1;
     private static final int STEREO = 2;
 
-    private static final boolean LITTLE_ENDIAN = false; // ORIGINAL
-    private static final boolean BIG_ENDIAN    = true; // ORIGINAL
-
-
-    // private static final boolean LITTLE_ENDIAN = true;
-    // private static final boolean BIG_ENDIAN    = false;
-
+    private static final boolean LITTLE_ENDIAN = false;
+    private static final boolean BIG_ENDIAN    = true;
 
     private static final boolean SIGNED        = true;
     private static final boolean UNSIGNED      = false;
@@ -121,7 +128,7 @@ public final class StdAudio {
     }
 
     // get an AudioInputStream object from a file
-    public static AudioInputStream getAudioInputStreamFromFile(String filename) {
+    private static AudioInputStream getAudioInputStreamFromFile(String filename) {
         if (filename == null) {
             throw new IllegalArgumentException("filename is null");
         }
@@ -164,7 +171,7 @@ public final class StdAudio {
     /**
      * Closes standard audio.
      */
-    public static void close() {
+    private static void close() {
         line.drain();
         line.stop();
     }
@@ -176,7 +183,7 @@ public final class StdAudio {
      * @param  sample the sample to play
      * @throws IllegalArgumentException if the sample is {@code Double.NaN}
      */
-    public static void play(double sample) {
+    private static void play(double sample) {
         if (Double.isNaN(sample)) throw new IllegalArgumentException("sample is NaN");
 
         // clip if outside [-1, +1]
@@ -203,10 +210,10 @@ public final class StdAudio {
      * @throws IllegalArgumentException if any sample is {@code Double.NaN}
      * @throws IllegalArgumentException if {@code samples} is {@code null}
      */
-    public static void play(double[] samples) {
+    private static void play(double[] samples) {
         if (samples == null) throw new IllegalArgumentException("argument to play() is null");
-        for (int i = 0; i < samples.length; i++) {
-            play(samples[i]);
+        for (double sample : samples) {
+            play(sample);
         }
     }
 
@@ -219,7 +226,7 @@ public final class StdAudio {
      * @param  filename the name of the audio file
      * @return the array of samples
      */
-    public static double[] read(String filename) {
+    private static double[] read(String filename) {
 
         // make sure that AudioFormat is 16-bit, 44,100 Hz, little endian
         final AudioInputStream ais = getAudioInputStreamFromFile(filename);
@@ -256,7 +263,7 @@ public final class StdAudio {
                     + "audio format: " + audioFormat);
         }
 
-        byte[] bytes = null;
+        byte[] bytes;
         try {
             int bytesToRead = ais.available();
             bytes = new byte[bytesToRead];
@@ -276,7 +283,7 @@ public final class StdAudio {
             double[] data = new double[n/2];
             for (int i = 0; i < n/2; i++) {
                 // little endian, mono
-                data[i] = ((short) (((bytes[2*i+1] & 0xFF) << 8) | (bytes[2*i] & 0xFF))) / ((double) MAX_16_BIT);
+                data[i] = ((short) (((bytes[2*i+1] & 0xFF) << 8) | (bytes[2*i] & 0xFF))) / MAX_16_BIT;
             }
             return data;
         }
@@ -285,8 +292,8 @@ public final class StdAudio {
         else if (audioFormat.getChannels() == STEREO) {
             double[] data = new double[n/4];
             for (int i = 0; i < n/4; i++) {
-                double left  = ((short) (((bytes[4*i+1] & 0xFF) << 8) | (bytes[4*i + 0] & 0xFF))) / ((double) MAX_16_BIT);
-                double right = ((short) (((bytes[4*i+3] & 0xFF) << 8) | (bytes[4*i + 2] & 0xFF))) / ((double) MAX_16_BIT);
+                double left  = ((short) (((bytes[4*i+1] & 0xFF) << 8) | (bytes[4*i + 0] & 0xFF))) / MAX_16_BIT;
+                double right = ((short) (((bytes[4*i+3] & 0xFF) << 8) | (bytes[4*i + 2] & 0xFF))) / MAX_16_BIT;
                 data[i] = (left + right) / 2.0;
             }
             return data;
@@ -307,7 +314,7 @@ public final class StdAudio {
      * @throws IllegalArgumentException if {@code filename} extension is not {@code .wav}
      *         or {@code .au}
      */
-    public static void save(String filename, double[] samples) {
+    private static void save(String filename, double[] samples) {
         if (filename == null) {
             throw new IllegalArgumentException("filenameis null");
         }
@@ -360,7 +367,7 @@ public final class StdAudio {
      * @throws IllegalArgumentException if unable to play {@code filename}
      * @throws IllegalArgumentException if {@code filename} is {@code null}
      */
-    public static synchronized void play(final String filename) {
+    private static synchronized void play(final String filename) {
         new Thread(new Runnable() {
             public void run() {
                 AudioInputStream ais = getAudioInputStreamFromFile(filename);
@@ -385,18 +392,14 @@ public final class StdAudio {
             line.open(audioFormat);
             line.start();
             byte[] samples = new byte[BUFFER_SIZE];
-            int count = 0;
+            int count;
             while ((count = ais.read(samples, 0, BUFFER_SIZE)) != -1) {
                 line.write(samples, 0, count);
             }
         }
-        catch (IOException e) {
+        catch (LineUnavailableException | IOException e) {
             e.printStackTrace();
-        }
-        catch (LineUnavailableException e) {
-            e.printStackTrace();
-        }
-        finally {
+        } finally {
             if (line != null) {
                 line.drain();
                 line.close();
@@ -410,7 +413,7 @@ public final class StdAudio {
      * @param filename the name of the audio file
      * @throws IllegalArgumentException if {@code filename} is {@code null}
      */
-    public static synchronized void loop(String filename) {
+    private static synchronized void loop(String filename) {
         if (filename == null) throw new IllegalArgumentException();
 
         final AudioInputStream ais = getAudioInputStreamFromFile(filename);
@@ -421,10 +424,7 @@ public final class StdAudio {
             clip.open(ais);
             clip.loop(Clip.LOOP_CONTINUOUSLY);
         }
-        catch (LineUnavailableException e) {
-            e.printStackTrace();
-        }
-        catch (IOException e) {
+        catch (LineUnavailableException | IOException e) {
             e.printStackTrace();
         }
 
@@ -463,12 +463,7 @@ public final class StdAudio {
      *
      * @param args the command-line arguments
      */
-    /**
-     * Test client - play an A major scale to standard audio.
-     *
-     * @param args the command-line arguments
-     */
-    public static void main(String[] args) {
+    static void main(String[] args) {
 
         // 440 Hz for 1 sec
         double freq = 440.0;
@@ -478,8 +473,8 @@ public final class StdAudio {
 
         // scale increments
         int[] steps = { 0, 2, 4, 5, 7, 9, 11, 12 };
-        for (int i = 0; i < steps.length; i++) {
-            double hz = 440.0 * Math.pow(2, steps[i] / 12.0);
+        for (int step : steps) {
+            double hz = 440.0 * Math.pow(2, step / 12.0);
             StdAudio.play(note(hz, 1.0, 0.5));
         }
 
@@ -489,27 +484,3 @@ public final class StdAudio {
         StdAudio.close();
     }
 }
-
-/******************************************************************************
- *  Copyright 2002-2018, Robert Sedgewick and Kevin Wayne.
- *
- *  This file is part of algs4.jar, which accompanies the textbook
- *
- *      Algorithms, 4th edition by Robert Sedgewick and Kevin Wayne,
- *      Addison-Wesley Professional, 2011, ISBN 0-321-57351-X.
- *      http://algs4.cs.princeton.edu
- *
- *
- *  algs4.jar is free software: you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation, either version 3 of the License, or
- *  (at your option) any later version.
- *
- *  algs4.jar is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
- *
- *  You should have received a copy of the GNU General Public License
- *  along with algs4.jar.  If not, see http://www.gnu.org/licenses.
- ******************************************************************************/
